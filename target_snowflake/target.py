@@ -119,9 +119,22 @@ class TargetSnowflake(SQLTarget):
             default=SnowflakeTimestampType.TIMESTAMP_NTZ.value,
             description="Snowflake timestamp type to use for date-time properties.",
         ),
+        th.Property(
+            "batch_timeout_minutes",
+            th.NumberType,
+            default=5.0,
+            description=(
+                "Maximum time (in minutes) before a batch is flushed, regardless of batch size. "
+                "Increase this when ingesting large sources where batches fill slowly."
+            ),
+        ),
     ).to_dict()
 
     default_sink_class = SnowflakeSink
+
+    @property
+    def _MAX_RECORD_AGE_IN_MINUTES(self) -> float:  # noqa: N802
+        return self.config.get("batch_timeout_minutes", 5.0)
 
     @classmethod
     def cb_inititalize(

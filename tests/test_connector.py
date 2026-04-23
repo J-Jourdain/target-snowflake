@@ -8,6 +8,9 @@ import sqlalchemy as sa
 
 from target_snowflake.connector import SnowflakeConnector, SnowflakeTimestampType
 from target_snowflake.snowflake_types import NUMBER, VARIANT
+from target_snowflake.target import TargetSnowflake
+
+MINIMAL_CONFIG = {"user": "u", "account": "a", "database": "db"}
 
 
 @pytest.fixture
@@ -90,6 +93,16 @@ def test_ipv6_format(connector: SnowflakeConnector):
     sql_type = connector.to_sql_type({"type": "string", "format": "ipv6"})
     assert isinstance(sql_type, sa.types.VARCHAR)
     assert sql_type.length == 45
+
+
+def test_batch_timeout_default():
+    target = TargetSnowflake(config=MINIMAL_CONFIG)
+    assert target._MAX_RECORD_AGE_IN_MINUTES == 5.0
+
+
+def test_batch_timeout_custom():
+    target = TargetSnowflake(config={**MINIMAL_CONFIG, "batch_timeout_minutes": 30})
+    assert target._MAX_RECORD_AGE_IN_MINUTES == 30
 
 
 def test_singer_decimal(connector: SnowflakeConnector):
