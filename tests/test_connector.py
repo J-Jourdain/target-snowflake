@@ -140,13 +140,13 @@ def test_batch_size_bytes_not_full_below_limit():
 
 
 def test_batch_size_bytes_full_at_limit():
-    sink = make_sink({"batch_size_bytes": 50})
+    # serialize_json produces 8 bytes per {"id": N} record; 6 records = 48 bytes
+    sink = make_sink({"batch_size_bytes": 40})
     context: dict = {}
     sink.start_batch(context)
-    # Each record is ~9 bytes: {"id": N}
     for i in range(6):
         sink.process_record({"id": i}, context)
-    assert sink._batch_bytes >= 50
+    assert sink._batch_bytes >= 40
     assert sink.is_full
 
 

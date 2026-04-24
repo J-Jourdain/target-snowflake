@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import typing as t
 from urllib.parse import urlparse
@@ -15,6 +14,7 @@ from singer_sdk.helpers._batch import (
     BatchFileFormat,
 )
 from singer_sdk.helpers._typing import conform_record_data_types
+from singer_sdk.singerlib.json import serialize_json
 from singer_sdk.sinks import SQLSink
 from snowflake.sqlalchemy.base import SnowflakeIdentifierPreparer
 from snowflake.sqlalchemy.snowdialect import SnowflakeDialect
@@ -58,7 +58,7 @@ class SnowflakeSink(SQLSink[SnowflakeConnector]):
         self._batch_bytes = 0
 
     def process_record(self, record: dict, context: dict) -> None:
-        self._batch_bytes += len(json.dumps(record).encode())
+        self._batch_bytes += len(serialize_json(record).encode())
         super().process_record(record, context)
 
     @property
