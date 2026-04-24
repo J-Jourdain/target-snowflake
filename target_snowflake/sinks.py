@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import typing as t
 from urllib.parse import urlparse
@@ -44,6 +45,7 @@ class SnowflakeSink(SQLSink[SnowflakeConnector]):
     ) -> None:
         """Initialize Snowflake Sink."""
         self.target = target
+        self._batch_bytes = 0
         super().__init__(
             target=target,
             stream_name=stream_name,
@@ -51,6 +53,20 @@ class SnowflakeSink(SQLSink[SnowflakeConnector]):
             key_properties=key_properties,
             connector=connector,
         )
+
+    def start_batch(self, context: dict) -> None:
+        self._batch_bytes = 0
+
+    def process_record(self, record: dict, context: dict) -> None:
+        self._batch_bytes += len(json.dumps(record).encode())
+        super().process_record(record, context)
+
+    @property
+    def is_full(self) -> bool:
+        if super().is_full:
+            return True
+        max_bytes = self.config.get("batch_size_bytes")
+        return max_bytes is not None and self._batch_bytes >= max_bytes
 
     @property
     def schema_name(self) -> str | None:

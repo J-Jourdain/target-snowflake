@@ -120,6 +120,14 @@ class TargetSnowflake(SQLTarget):
             description="Snowflake timestamp type to use for date-time properties.",
         ),
         th.Property(
+            "batch_size_bytes",
+            th.IntegerType,
+            description=(
+                "Maximum uncompressed batch size in bytes before flushing, regardless of row count. "
+                "Useful for capping memory usage on containers ingesting wide or large records."
+            ),
+        ),
+        th.Property(
             "batch_timeout_minutes",
             th.NumberType,
             default=5.0,
